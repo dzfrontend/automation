@@ -148,7 +148,7 @@
 		})
 	};　　
 
-####2.3、copy-file  
+####2.3、copy-file　安装grunt-contrib-copy插件  
 
 　　安装grunt-contrib-copy插件实现复制  
 
@@ -197,7 +197,7 @@
 		//命令行运行grunt copy就能实现多个文件复制
 	};  
 
-####2.5、watch-files  
+####2.5、watch-files　安装grunt-contrib-watch插件
 
 　　监听文件变化：grunt-contrib-watch插件  
 	
@@ -236,4 +236,65 @@
 
 　　上面配置实现了css文件的实时拷贝
 
+####3.1connect搭建服务器  
 
+　　搭建服务器插件：grunt-contrib-connect  
+
+	npm install grunt-contrib-connect --save-dev  
+
+	module.exports = function(grunt){
+		// 加载插件
+		grunt.loadNpmTasks('grunt-contrib-connect');
+	
+		grunt.initConfig({
+			connect:{
+				server:{ //创建一个服务器
+					options:{
+						port:8000,//服务器端口号，默认8000
+						base:'dist' //服务器根目录
+					}
+				}
+			},
+			//命令行运行grunt connect:server开启这个服务器 grunt connect:server:keepalive让服务器一直开启
+		})	
+	};  
+
+####3.2 livereload实时刷新浏览器  
+
+　　在connect和watch里添加livereload:true，livereload要放在options里面，然后添加任务同时执行connect和watch  
+
+	module.exports = function(grunt){
+		// 加载插件
+		grunt.loadNpmTasks('grunt-contrib-watch');
+		grunt.loadNpmTasks('grunt-contrib-connect');
+	
+		grunt.initConfig({
+			connect:{
+				server:{ //创建一个服务器
+					options:{
+						open:true, //自动打开浏览器窗口
+						hostname: 'localhost', //域名，必需
+						port:8000,//服务器端口号，默认8000
+						base:'./', //服务器根目录
+						livereload:true
+					}
+				}
+			},
+			watch:{
+				html:{
+					files:['**.html'],
+					options:{
+						livereload:true
+					}
+				}
+			}
+		});
+		grunt.registerTask('server',['connect','watch']);
+	};  
+
+　　上面配置好，命令行运行grunt server会自动打开服务器根目录下的index.html文件，并在保存时浏览器自动刷新。  
+　　实现不了自动刷新最好装上grunt-contrib-livereload插件，不知道是不是这个的影响，之前有过没成功。
+
+　　
+
+　　

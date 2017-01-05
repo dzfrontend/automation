@@ -9,7 +9,7 @@
 	npm install -g grunt-cli 
 
 　　2.npm init创建package.json文件  
-　　　npm install grunt --sava-dev安装grunt到该文件夹
+　　　npm install grunt --sava-dev安装grunt到package.json的开发依赖里面。所有加上--save-dev安装的插件都会写到package.json依赖里面，下次换目录直接npm install自动安装所有的依赖插件。
 
 	cd desktop //进入桌面
 	mkdir grunt //新建文件夹
@@ -236,7 +236,7 @@
 
 　　上面配置实现了css文件的实时拷贝
 
-####3.1connect搭建服务器  
+####3.1、connect搭建服务器  
 
 　　搭建服务器插件：grunt-contrib-connect  
 
@@ -259,7 +259,7 @@
 		})	
 	};  
 
-####3.2 livereload实时刷新浏览器  
+####3.2、livereload实时刷新浏览器  
 
 　　在connect和watch里添加livereload:true，livereload要放在options里面，然后添加任务同时执行connect和watch  
 
@@ -294,7 +294,240 @@
 
 　　上面配置好，命令行运行grunt server会自动打开服务器根目录下的index.html文件，并在保存时浏览器自动刷新。  
 　　实现不了自动刷新最好装上grunt-contrib-livereload插件，不知道是不是这个的影响，之前有过没成功。
-
 　　
+####4.1、sass  
 
-　　
+　　安装sass插件：
+	
+	npm install grunt-contrib-sass --save-dev  
+
+　　除了安装sass插件，还需要安装ruby和sass。安装ruby和sass百度sass:<http://www.w3cplus.com/sassguide/>  
+
+	ruby -v //查看ruby是否安装好
+	sass -v //查看sass是否安装好  
+
+　　sass编译成css:  
+
+	sass:{
+		dist:{ //dist目标
+			options:{
+				style:'expanded' //规定的
+			},
+			files:{
+				//编译目标和编译位置，编译多个用逗号隔开
+				'css/style.css':'scss/style.scss'
+			}
+		}
+	}  
+
+　　下面配置实现了编译scss的时候自动刷新浏览器生成效果，命令行运行grunt server生成自动刷新服务器  
+
+	module.exports = function(grunt){
+		// 加载插件
+		grunt.loadNpmTasks('grunt-contrib-watch');
+		grunt.loadNpmTasks('grunt-contrib-connect');
+		grunt.loadNpmTasks('grunt-contrib-sass');
+	
+		grunt.initConfig({
+			connect:{
+				server:{ //创建一个服务器
+					options:{
+						open:true, //自动打开浏览器窗口
+						hostname: 'localhost', //域名，必需
+						port:8000,//服务器端口号，默认8000
+						base:'./', //服务器根目录
+						livereload:true
+					}
+				}
+			},
+			watch:{
+				html:{
+					files:['./**.html'], //根目录下的html文件
+					options:{
+						livereload:true
+					}
+				},
+				css:{
+					files:['./css/*.css'], //根目录css文件夹下的css文件
+					options:{
+						livereload:true
+					}
+				},
+				sass:{
+					files:['./scss/*.scss'],//根目录scss文件夹下的scss文件
+					tasks:['sass:dist'], //监听sass文件变动时执行sass编译任务
+				}
+			},
+			sass:{
+				dist:{ //dist目标
+					options:{
+						style:'expanded' //规定的
+					},
+					files:{
+						//编译目标和编译位置，编译多个用逗号隔开
+						'css/style.css':'scss/style.scss'
+					}
+				}
+			}
+		});
+		grunt.registerTask('server',['connect','watch']);
+	};  
+
+####4.2、less  
+
+　　安装less插件：  
+
+	npm install grunt-contrib-less --save-dev  
+
+　　less和sass类似：
+
+	module.exports = function(grunt){
+		// 加载插件
+		grunt.loadNpmTasks('grunt-contrib-watch');
+		grunt.loadNpmTasks('grunt-contrib-connect');
+		grunt.loadNpmTasks('grunt-contrib-less');
+	
+		grunt.initConfig({
+			connect:{
+				server:{ //创建一个服务器
+					options:{
+						open:true, //自动打开浏览器窗口
+						hostname: 'localhost', //域名，必需
+						port:8000,//服务器端口号，默认8000
+						base:'./', //服务器根目录
+						livereload:true
+					}
+				}
+			},
+			watch:{
+				html:{
+					files:['./**.html'], //根目录下的html文件
+					options:{
+						livereload:true
+					}
+				},
+				css:{
+					files:['./css/*.css'], //根目录css文件夹下的css文件
+					options:{
+						livereload:true
+					}
+				},
+				less:{
+					files:['./less/*.less'],//根目录less文件夹下的less文件
+					tasks:['less:dist'], //监听less文件变动时执行less编译任务
+				}
+			},
+			less:{
+				dist:{ //dist目标
+					files:{
+						//编译目标和编译位置，编译多个用逗号隔开
+						'css/style.css':'less/style.less'
+					}
+				}
+			}
+		});
+		grunt.registerTask('server',['connect','watch']);
+	}; 
+
+####4.3、concat合并  
+
+　　在项目中可能要合并js，css文件，用到grunt-contrib-concat  
+
+　　下面合并js文件：
+
+	module.exports = function(grunt){
+		// 加载插件
+		grunt.loadNpmTasks('grunt-contrib-concat');
+	
+		grunt.initConfig({
+			concat:{
+				js:{ //js目标配置
+					src:['js/concat1.js','js/concat2.js'], //合并文件路径
+					dest:'js/concat.js' //合并后文件路径
+	
+					/*或者files:{
+						['js/concat1.js','js/concat2.js']:'js/concat.js'
+					}*/
+				}
+			},
+		});
+		//命令行grunt concat合并js文件
+	};
+
+####4.4、uglify 压缩js  
+
+　　安装grunt-contrib-uglify插件  
+
+　　压缩js：  
+	
+	module.exports = function(grunt){
+		// 加载插件
+		grunt.loadNpmTasks('grunt-contrib-uglify');
+	
+		grunt.initConfig({
+			uglify:{
+				builda: {//任务一：压缩a.js
+	                files: {
+	                    'output/js/a.min.js': ['js/a.js'] //压缩后文件和压缩文件不能同路径
+	                }
+	            },
+	            buildab:{//任务二：合并a.js和b.js并压缩
+	                files: {
+	                    'output/js/ab.min.js': ['js/a.js', 'js/b.js']
+	                }
+	            },
+	            buildall: {//任务三：按原文件结构压缩js文件夹内所有JS文件
+	                files: [{
+	                    expand:true,
+	                    cwd:'js',//js目录下
+	                    src:'**/*.js',//所有js文件
+	                    dest: 'output/js'//输出到此目录下
+	                }]
+	            },
+			}
+		});
+		//命令行grunt uglify:builda执行任务一，依次类推
+	};
+
+####4.5、cssmin 压缩css  
+
+　　安装grunt-contrib-cssmin插件  
+
+　　压缩css:
+
+	module.exports = function(grunt){
+		// 加载插件
+		grunt.loadNpmTasks('grunt-contrib-cssmin');
+	
+		grunt.initConfig({
+	        cssmin:{
+	            dist:{
+	                src:'css/style.css',
+	                dest:'css/style.min.css'
+	            }
+	        }
+		});
+		//命令行grunt cssmin压缩指定css
+	};
+
+####4.6、imagemin 压缩图片
+
+　　安装grunt-contrib-imagemin插件  
+
+　　压缩图片：
+
+	module.exports = function(grunt){
+		// 加载插件
+		grunt.loadNpmTasks('grunt-contrib-imagemin');
+	
+		grunt.initConfig({
+	        imagemin:{
+	            dist:{
+	                expand:true, //需要将expand设为true
+	                src:'images/**/*.{png,jpg}', //images及其子目录下所有png,jpg图片
+	                dest:'dist/'
+	            }
+	        }
+		});
+		//命令行grunt imagemin压缩指定图片
+	};
